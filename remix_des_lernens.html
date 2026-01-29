@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Remix des Lernens - Touch Optimized</title>
+    <!-- React & Tailwind -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            background-color: #020617;
+            color: #e2e8f0;
+            overflow: hidden;
+            touch-action: none;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 16px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin-slow { animation: spin-slow 4s linear infinite; }
+
+        .no-select {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+    const { useState, useRef } = React;
+
+    // --- ICONS ---
+    const IconPlay = () => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <polygon points="5 3 19 12 5 21 5 3" />
+        </svg>
+    );
+    const IconPause = () => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <rect x="6" y="4" width="4" height="16" />
+            <rect x="14" y="4" width="4" height="16" />
+        </svg>
+    );
+    const IconInfo = () => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 16v-4" />
+            <path d="M12 8h.01" />
+        </svg>
+    );
+    const IconClose = () => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+        </svg>
+    );
+
+    // --- MODAL ---
+    const DocsModal = ({ isOpen, onClose }) => {
+        if (!isOpen) return null;
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                <div className="bg-slate-900 border border-slate-700 w-full max-w-2xl max-h-[85vh] rounded-xl shadow-2xl flex flex-col overflow-hidden">
+                    <div className="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-800">
+                        <h2 className="text-2xl font-bold text-orange-500">Bedienungsanleitung &amp; Konzept</h2>
+                        <button onClick={onClose} className="text-slate-400 hover:text-white"><IconClose /></button>
+                    </div>
+                    <div className="p-6 overflow-y-auto custom-scrollbar text-slate-300 text-base leading-relaxed space-y-6">
+                        <section>
+                            <h3 className="text-white font-bold text-xl mb-2 flex items-center gap-2">
+                                <span className="bg-orange-600 w-7 h-7 rounded flex items-center justify-center text-sm">1</span>
+                                Die Metapher
+                            </h3>
+                            <p>
+                                Das DJ-Pult ist eine Metapher für zeitgemäßes Lernen. Lehrende (und Lernende) mischen
+                                verschiedene "Tracks" (Inhalte und Methoden), um den perfekten Lern-Sound zu kreieren.
+                            </p>
+                        </section>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <section>
+                                <h4 className="font-bold text-orange-400 mb-1 text-lg">Deck A: WAS lernen? (Links)</h4>
+                                <p>Dies ist die Inhaltsebene. Hier wählen Sie aus, <em>was</em> vermittelt wird.</p>
+                                <ul className="list-disc ml-4 mt-2 text-slate-400">
+                                    <li><strong>CUE/Start:</strong> Der Einstieg ins Thema.</li>
+                                    <li><strong>Sachlogik &amp; Curriculum:</strong> Der rote Faden des Fachwissens.</li>
+                                    <li><strong>Relevanz:</strong> Der Bezug zur Lebenswelt der Lernenden.</li>
+                                </ul>
+                            </section>
+                            <section>
+                                <h4 className="font-bold text-blue-400 mb-1 text-lg">Deck B: WIE lernen? (Rechts)</h4>
+                                <p>Dies ist die Methodenebene. Hier bestimmen Sie, <em>wie</em> gelernt wird.</p>
+                                <ul className="list-disc ml-4 mt-2 text-slate-400">
+                                    <li><strong>Üben &amp; Forschen:</strong> Die Tätigkeiten der Lernenden.</li>
+                                    <li><strong>Fehler &amp; Teilen:</strong> Die Kultur des Umgangs mit Ergebnissen.</li>
+                                </ul>
+                            </section>
+                        </div>
+                        <section>
+                            <h3 className="text-white font-bold text-xl mb-2 flex items-center gap-2">
+                                <span className="bg-orange-600 w-7 h-7 rounded flex items-center justify-center text-sm">2</span>
+                                Der Mixer (Mitte)
+                            </h3>
+                            <p>Hier findet die Prozesssteuerung statt.</p>
+                            <ul className="list-disc ml-4 mt-2 text-slate-400">
+                                <li><strong>Fader (Was vs. Wie):</strong> Balancieren Sie Instruktion und Konstruktion.</li>
+                                <li><strong>Regler (Prozess/Produkt):</strong> Liegt der Fokus auf dem Ergebnis oder dem Weg?</li>
+                                <li><strong>Crossfader (Unten):</strong> Übergang von Planung zur Reflexion.</li>
+                                <li><strong>Ego Master Out (oben):</strong> Das individuelle Lernergebnis.</li>
+                            </ul>
+                        </section>
+                        <section>
+                            <h3 className="text-white font-bold text-xl mb-2 flex items-center gap-2">
+                                <span className="bg-orange-600 w-7 h-7 rounded flex items-center justify-center text-sm">3</span>
+                                Kollaboration (Rechts außen)
+                            </h3>
+                            <p>Zeitgemäßes Lernen ist oft sozial. Dieser Bereich steuert das Miteinander.</p>
+                            <ul className="list-disc ml-4 mt-2 text-slate-400">
+                                <li><strong>Kollab-Master:</strong> Gewichtung des Teamergebnisses.</li>
+                                <li><strong>Fader:</strong> Intensität von Feedback, Coaching und Review durch Peers.</li>
+                            </ul>
+                        </section>
+                        <div className="bg-slate-800 p-4 rounded text-sm text-center border border-slate-700">
+                            Konzept <strong>Niels Winkelmann (DigiLog.Blog)</strong><br />
+                            <em>"Der Remix des Lernens" (2023)</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    /** TouchKnob Component (robust size handling) */
+    const TouchKnob = ({ label, value, onChange, min = 0, max = 100, size = "normal" }) => {
+        const [isDragging, setIsDragging] = React.useState(false);
+        const startYRef = useRef(0);
+        const startValRef = useRef(0);
+
+        const VALID_SIZES = ["small", "normal", "large"];
+        const safeSize = VALID_SIZES.includes(size) ? size : "normal";
+        if (!VALID_SIZES.includes(size)) {
+            console.warn("TouchKnob: unexpected size prop, falling back to 'normal'", size);
+        }
+
+        const SIZE_CONFIG = {
+            small:  { svgSize: 40, radius: 16, strokeWidth: 3, knobSizeClass: "w-8 h-8",  labelClass: "text-[9px] md:text-[10px]" },
+            normal: { svgSize: 46, radius: 20, strokeWidth: 3, knobSizeClass: "w-10 h-10", labelClass: "text-[10px] md:text-[11px]" },
+            large:  { svgSize: 54, radius: 24, strokeWidth: 4, knobSizeClass: "w-12 h-12", labelClass: "text-[11px] md:text-[12px]" },
+        };
+
+        const cfg = SIZE_CONFIG[safeSize];
+        const { svgSize, radius, strokeWidth, knobSizeClass, labelClass } = cfg;
+
+        const handlePointerDown = (e) => {
+            setIsDragging(true);
+            startYRef.current = e.clientY;
+            startValRef.current = value;
+            e.target.setPointerCapture(e.pointerId);
+        };
+        const handlePointerMove = (e) => {
+            if (!isDragging) return;
+            const deltaY = startYRef.current - e.clientY;
+            let newValue = startValRef.current + deltaY * 1.5;
+            if (newValue > max) newValue = max;
+            if (newValue < min) newValue = min;
+            onChange(Math.round(newValue));
+        };
+        const handlePointerUp = (e) => {
+            setIsDragging(false);
+            try {
+                e.target.releasePointerCapture(e.pointerId);
+            } catch (err) {
+                // defensive: ignore if pointer capture not set
+            }
+        };
+
+        const rotation = (value / max) * 180 - 60;
+        const center = svgSize / 2;
+        const circumference = 2 * Math.PI * radius;
+        const arcLength = circumference * 0.5; // 180°
+        const currentArcLength = arcLength * (value / max);
+
+        return (
+            <div className="flex flex-col items-center justify-center m-0.5 no-select touch-none">
+                <div className={`${labelClass} text-gray-300 mb-1 uppercase tracking-tight text-center leading-none w-full font-semibold truncate max-w-[90px]`}>
+                    {label}
+                </div>
+                <div
+                    className="relative flex items-center justify-center cursor-ns-resize"
+                    onPointerDown={handlePointerDown}
+                    onPointerMove={handlePointerMove}
+                    onPointerUp={handlePointerUp}
+                    onPointerCancel={handlePointerUp}
+                >
+                    <svg width={svgSize} height={svgSize} className="pointer-events-none">
+                        <g transform={`translate(${center},${center}) rotate(-150)`}>
+                            <circle
+                                r={radius}
+                                fill="none"
+                                stroke="#1e293b"
+                                strokeWidth={strokeWidth}
+                                strokeLinecap="round"
+                                strokeDasharray={`${arcLength} ${circumference}`}
+                            />
+                            <circle
+                                r={radius}
+                                fill="none"
+                                stroke="#f97316"
+                                strokeWidth={strokeWidth}
+                                strokeLinecap="round"
+                                strokeDasharray={`${currentArcLength} ${circumference}`}
+                                className="drop-shadow-[0_0_2px_rgba(249,115,22,0.8)]"
+                            />
+                        </g>
+                    </svg>
+                    <div
+                        className={`${knobSizeClass} absolute rounded-full border-2 ${
+                            isDragging ? "border-orange-500" : "border-slate-600"
+                        } bg-slate-800 shadow-xl flex items-center justify-center`}
+                    >
+                        <div
+                            className={`w-0.5 h-1/2 ${
+                                isDragging ? "bg-orange-500" : "bg-white"
+                            } absolute top-1 rounded-full origin-bottom transition-transform duration-75`}
+                            style={{ transform: `rotate(${rotation}deg) translateY(50%)` }}
+                        />
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    /** TouchFader (vertical) */
+    const TouchFader = ({ label, value, onChange, color = "orange" }) => {
+        const trackRef = useRef(null);
+
+        const updateValue = (clientY) => {
+            if (!trackRef.current) return;
+            const rect = trackRef.current.getBoundingClientRect();
+            const relativeY = rect.bottom - clientY;
+            let percentage = (relativeY / rect.height) * 100;
+            if (percentage < 0) percentage = 0;
+            if (percentage > 100) percentage = 100;
+            onChange(Math.round(percentage));
+        };
+
+        const handlePointerDown = (e) => {
+            e.target.setPointerCapture(e.pointerId);
+            updateValue(e.clientY);
+        };
+        const handlePointerMove = (e) => {
+            if (e.buttons !== 1) return;
+            updateValue(e.clientY);
+        };
+        const themeColor = color === "blue" ? "bg-blue-500" : "bg-orange-500";
+
+        return (
+            <div className="flex flex-col items-center w-full h-full no-select touch-none">
+                {label && (
+                    <div className="text-[10px] md:text-[11px] font-bold text-gray-300 mb-1 uppercase truncate w-full text-center">
+                        {label}
+                    </div>
+                )}
+                <div
+                    ref={trackRef}
+                    className="relative flex-grow w-7 md:w-9 bg-slate-900 rounded border border-slate-700 shadow-inner overflow-hidden cursor-pointer"
+                    onPointerDown={handlePointerDown}
+                    onPointerMove={handlePointerMove}
+                >
+                    <div className="absolute inset-0 flex flex-col justify-between py-1 px-0.5 pointer-events-none opacity-30">
+                        {[...Array(6)].map((_, i) => (
+                            <div key={i} className="w-full border-t border-slate-600" />
+                        ))}
+                    </div>
+                    <div
+                        className={`absolute bottom-0 w-full left-0 opacity-30 ${themeColor} transition-all duration-75`}
+                        style={{ height: `${value}%` }}
+                    />
+                    <div
+                        className="absolute left-0 w-full px-0.5 h-4 pointer-events-none transition-all duration-75 flex items-center justify-center"
+                        style={{ bottom: `calc(${value}% - 8px)` }}
+                    >
+                        <div className="w-full h-2 bg-slate-700 border border-slate-500 rounded-sm shadow flex items-center justify-center">
+                            <div className={`w-full h-[1px] ${themeColor}`}></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    /** CrossFader (horizontal) */
+    const CrossFader = ({ value, onChange }) => {
+        const trackRef = useRef(null);
+
+        const updateValue = (clientX) => {
+            if (!trackRef.current) return;
+            const rect = trackRef.current.getBoundingClientRect();
+            let percentage = ((clientX - rect.left) / rect.width) * 100;
+            if (percentage < 0) percentage = 0;
+            if (percentage > 100) percentage = 100;
+            onChange(Math.round(percentage));
+        };
+
+        const handlePointerDown = (e) => {
+            e.target.setPointerCapture(e.pointerId);
+            updateValue(e.clientX);
+        };
+        const handlePointerMove = (e) => {
+            if (e.buttons !== 1) return;
+            updateValue(e.clientX);
+        };
+
+        return (
+            <div className="w-full px-4 py-2 touch-none">
+                <div
+                    className="relative w-full h-9 bg-slate-900 rounded border border-slate-700 flex items-center px-1 shadow-inner cursor-pointer"
+                    ref={trackRef}
+                    onPointerDown={handlePointerDown}
+                    onPointerMove={handlePointerMove}
+                >
+                    <div className="absolute left-2 -top-4 text-[10px] text-slate-400 font-bold">PLANUNG</div>
+                    <div className="absolute right-2 -top-4 text-[10px] text-slate-400 font-bold">REFLEXION</div>
+                    <div className="w-full h-0.5 bg-slate-700 relative flex items-center pointer-events-none">
+                        <div
+                            className="absolute w-9 h-6 bg-gradient-to-b from-slate-300 to-slate-500 rounded shadow pointer-events-none transform -translate-x-1/2 border-x border-slate-900 flex items-center justify-center"
+                            style={{ left: `${value}%` }}
+                        >
+                            <div className="w-0.5 h-full bg-orange-600"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const Pad = ({ label, active, onClick, color = "normal" }) => {
+        let activeClass;
+        if (active) {
+            activeClass =
+                color === "play"
+                    ? "border-green-500 bg-green-500/20 text-green-400 shadow-[0_0_10px_rgba(34,197,94,0.4)]"
+                    : "border-orange-500 bg-orange-900/40 text-orange-100 shadow-[0_0_10px_rgba(249,115,22,0.6)] font-bold";
+        } else {
+            activeClass = "border-slate-500 text-slate-200 bg-slate-800/60";
+        }
+        return (
+            <button
+                onClick={onClick}
+                className={`relative border rounded transition-all duration-75 flex flex-col items-center justify-center overflow-hidden w-full h-full ${activeClass} text-[11px] uppercase tracking-wide active:scale-95 touch-manipulation select-none`}
+            >
+                {label}
+            </button>
+        );
+    };
+
+    const TopButton = ({ label, active, onClick }) => {
+        const activeClass = active
+            ? "border-orange-500 text-orange-100 bg-orange-900/40 shadow-[0_0_8px_rgba(249,115,22,0.5)]"
+            : "border-slate-500 text-slate-200 bg-slate-800";
+        return (
+            <div
+                onClick={onClick}
+                className={`flex flex-col items-center justify-center w-9 h-9 rounded-full border cursor-pointer active:scale-95 transition-all shadow-md ${activeClass} select-none`}
+            >
+                <span className="text-[10px] font-bold leading-tight text-center">{label}</span>
+            </div>
+        );
+    };
+
+    const JogWheel = ({ isPlaying, color = "orange" }) => {
+        const strokeColor = color === "orange" ? "#f97316" : "#3b82f6";
+        return (
+            <div className="relative w-full aspect-square max-w-[180px] max-h-[180px] rounded-full border-[4px] border-slate-600 bg-slate-900 shadow-2xl flex items-center justify-center overflow-hidden mx-auto my-1">
+                <div className="absolute inset-0 rounded-full border-[8px] border-slate-800"></div>
+                <div className={`w-full h-full rounded-full flex items-center justify-center transition-transform ${isPlaying ? "animate-spin-slow" : ""}`}>
+                    <svg viewBox="0 0 100 100" className="w-[90%] h-[90%] opacity-90">
+                        <path
+                            d="M50,50 m0,0 a1,1 0 0,1 2,0 a2,2 0 0,1 -4,0 a3,3 0 0,1 6,0 a4,4 0 0,1 -8,0 a5,5 0 0,1 10,0 a6,6 0 0,1 -12,0 a7,7 0 0,1 14,0 a8,8 0 0,1 -16,0 a9,9 0 0,1 18,0 a10,10 0 0,1 -20,0 a11,11 0 0,1 22,0 a12,12 0 0,1 -24,0 a13,13 0 0,1 26,0 a14,14 0 0,1 -28,0 a15,15 0 0,1 30,0 a16,16 0 0,1 -32,0 a17,17 0 0,1 34,0 a18,18 0 0,1 -36,0 a19,19 0 0,1 38,0"
+                            fill="none"
+                            stroke={strokeColor}
+                            strokeWidth="1.2"
+                            strokeLinecap="round"
+                        />
+                    </svg>
+                </div>
+            </div>
+        );
+    };
+
+    function App() {
+        const [showDocs, setShowDocs] = React.useState(false);
+
+        // Deck A (Was)
+        const [padsLeft, setPadsLeft] = React.useState({
+            cue: true,
+            bne: false,
+            curr: true,
+            logic: false,
+            access: false,
+            rel: true,
+        });
+        const [topBtnsLeft, setTopBtnsLeft] = React.useState({ in: false, out: false, loop: false, sync: false });
+        const [isPlayingLeft, setIsPlayingLeft] = React.useState(false);
+
+        // Deck B (Wie)
+        const [padsRight, setPadsRight] = React.useState({
+            cue: true,
+            pract: false,
+            prob: true,
+            fail: false,
+            res: false,
+            share: true,
+        });
+        const [topBtnsRight, setTopBtnsRight] = React.useState({ in: false, out: false, loop: false, sync: false });
+        const [isPlayingRight, setIsPlayingRight] = React.useState(false);
+
+        // Mixer & Kollaboration
+        const [knobs, setKnobs] = React.useState({
+            masterOut: 80,
+            prozess: 60,
+            summative: 30,
+            product: 40,
+            formative: 80,
+            projekt: 50,
+            doku: 50,
+            plenum: 55,
+            planung: 70,
+            feedForward: 60,
+            ziel: 80,
+            feedUp: 50,
+            reflexion: 40,
+            feedback: 75,
+            collabMaster: 60,
+        });
+        const [faders, setFaders] = React.useState({ was: 80, wie: 70, crossfader: 50 });
+        const [collabStrip, setCollabStrip] = React.useState({
+            teamRef: 30,
+            peerFeed: 70,
+            peerCoach: 40,
+            peerRev: 60,
+            peerAss: 20,
+        });
+
+        const updateKnob = (k, v) => setKnobs((prev) => ({ ...prev, [k]: v }));
+        const togglePad = (deck, key) => {
+            if (deck === "left") setPadsLeft((p) => ({ ...p, [key]: !p[key] }));
+            else setPadsRight((p) => ({ ...p, [key]: !p[key] }));
+        };
+        const toggleTopBtn = (deck, key) => {
+            if (deck === "left") setTopBtnsLeft((p) => ({ ...p, [key]: !p[key] }));
+            else setTopBtnsRight((p) => ({ ...p, [key]: !p[key] }));
+        };
+
+        return (
+            <div className="fixed inset-0 w-full h-full bg-[#0f172a] p-2 md:p-4 flex flex-col no-select">
+                {/* Header */}
+                <div className="flex justify-between items-center px-4 h-10 shrink-0 mb-2">
+                    <h1 className="text-xl md:text-3xl font-black uppercase tracking-tighter text-slate-100 flex items-center gap-2">
+                        Remix <span className="text-orange-500">des Lernens</span>
+                    </h1>
+                    <button
+                        onClick={() => setShowDocs(true)}
+                        className="flex items-center gap-2 px-4 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-full text-xs md:text-sm font-bold text-orange-400 transition-colors"
+                    >
+                        <IconInfo /> <span>Doku / Hilfe</span>
+                    </button>
+                </div>
+
+                {/* Main Console */}
+                <div className="flex-grow flex gap-2 md:gap-3 bg-[#1e293b] rounded-2xl border-4 border-[#334155] p-2 md:p-3 shadow-2xl overflow-hidden relative">
+                    {/* DECK A */}
+                    <div className="flex-1 flex flex-col bg-slate-900/30 rounded-xl p-1.5 border border-slate-700/30 min-w-0">
+                        <div className="flex justify-between px-1 mb-1.5 shrink-0 gap-1.5">
+                            {["In", "Out", "Loop", "Sync"].map((l) => (
+                                <TopButton
+                                    key={l}
+                                    label={l}
+                                    active={topBtnsLeft[l.toLowerCase()]}
+                                    onClick={() => toggleTopBtn("left", l.toLowerCase())}
+                                />
+                            ))}
+                        </div>
+                        <div className="bg-slate-100 text-orange-600 px-2 py-1 text-center text-3xl md:text-4xl font-black uppercase transform -rotate-1 shadow-md mx-3 mb-2 shrink-0 leading-tight">
+                            Was
+                            <br />
+                            lernen?
+                        </div>
+                        <div className="flex-grow flex items-center justify-center min-h-0">
+                            <JogWheel isPlaying={isPlayingLeft} color="orange" />
+                        </div>
+                        <div className="grid grid-cols-4 gap-1.5 h-[24%] shrink-0">
+                            <Pad label="CUE" active={padsLeft.cue} onClick={() => togglePad("left", "cue")} />
+                            <Pad label="BNE" active={padsLeft.bne} onClick={() => togglePad("left", "bne")} />
+                            <Pad label="Curric." active={padsLeft.curr} onClick={() => togglePad("left", "curr")} />
+                            <div className="bg-transparent"></div>
+                            <div className="flex items-center justify-center">
+                                <button
+                                    onClick={() => setIsPlayingLeft((p) => !p)}
+                                    className={`w-11 h-11 rounded-full border-2 flex items-center justify-center transition-all ${
+                                        isPlayingLeft
+                                            ? "border-green-500 bg-green-500/20 text-green-400"
+                                            : "border-slate-500 text-slate-300 bg-slate-800"
+                                    }`}
+                                >
+                                    {isPlayingLeft ? <IconPause /> : <IconPlay />}
+                                </button>
+                            </div>
+                            <Pad label="Sachl." active={padsLeft.logic} onClick={() => togglePad("left", "logic")} />
+                            <Pad label="Zugang" active={padsLeft.access} onClick={() => togglePad("left", "access")} />
+                            <Pad label="Relev." active={padsLeft.rel} onClick={() => togglePad("left", "rel")} />
+                        </div>
+                    </div>
+
+                    {/* MIXER (CENTER) */}
+                    <div className="w-[32%] flex flex-col bg-[#162032] border-x-2 border-slate-900 px-1.5 py-1.5 relative shadow-inner min-w-0 rounded-xl">
+                        <div className="flex justify-center mb-2 shrink-0">
+                            <TouchKnob label="Ego Master Out" value={knobs.masterOut} onChange={(v) => updateKnob("masterOut", v)} />
+                        </div>
+
+                        {/* Grid mit Prozess / Produkt / Projekt / Assess / Doku / Plenum */}
+                        <div className="grid grid-cols-3 gap-x-4 gap-y-2 mb-3 shrink-0 justify-items-center px-2">
+                            <TouchKnob label="Prozess" value={knobs.prozess} onChange={(v) => updateKnob("prozess", v)} />
+                            <TouchKnob label="Produkt" value={knobs.product} onChange={(v) => updateKnob("product", v)} />
+                            <TouchKnob label="Projekt" value={knobs.projekt} onChange={(v) => updateKnob("projekt", v)} />
+
+                            <TouchKnob label="Sum. Assess" value={knobs.summative} onChange={(v) => updateKnob("summative", v)} />
+                            <TouchKnob label="Form. Assess" value={knobs.formative} onChange={(v) => updateKnob("formative", v)} />
+                            <TouchKnob label="Dokumentation" value={knobs.doku} onChange={(v) => updateKnob("doku", v)} />
+
+                            <TouchKnob label="Plenum" value={knobs.plenum} onChange={(v) => updateKnob("plenum", v)} />
+                        </div>
+
+                        <div className="flex-grow flex justify-between items-center px-1 min-h-0">
+                            <div className="flex flex-col justify-around h-full py-1 gap-1.5">
+                                <TouchKnob
+                                    label="Planung"
+                                    value={knobs.planung}
+                                    onChange={(v) => updateKnob("planung", v)}
+                                    size="small"
+                                />
+                                <TouchKnob label="Ziel" value={knobs.ziel} onChange={(v) => updateKnob("ziel", v)} size="small" />
+                                <TouchKnob
+                                    label="Reflexion"
+                                    value={knobs.reflexion}
+                                    onChange={(v) => updateKnob("reflexion", v)}
+                                    size="small"
+                                />
+                            </div>
+
+                            <div className="flex gap-3 h-full py-2 px-2 bg-slate-900/40 rounded border border-slate-800/50 mx-1.5">
+                                <TouchFader
+                                    label="Was"
+                                    value={faders.was}
+                                    onChange={(v) => setFaders((f) => ({ ...f, was: v }))}
+                                    color="orange"
+                                />
+                                <TouchFader
+                                    label="Wie"
+                                    value={faders.wie}
+                                    onChange={(v) => setFaders((f) => ({ ...f, wie: v }))}
+                                    color="blue"
+                                />
+                            </div>
+
+                            <div className="flex flex-col justify-around h-full py-1 gap-1.5">
+                                <TouchKnob
+                                    label="Feed Fwd"
+                                    value={knobs.feedForward}
+                                    onChange={(v) => updateKnob("feedForward", v)}
+                                    size="small"
+                                />
+                                <TouchKnob
+                                    label="FeedUp"
+                                    value={knobs.feedUp}
+                                    onChange={(v) => updateKnob("feedUp", v)}
+                                    size="small"
+                                />
+                                <TouchKnob
+                                    label="Feedback"
+                                    value={knobs.feedback}
+                                    onChange={(v) => updateKnob("feedback", v)}
+                                    size="small"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="mt-2 shrink-0 pb-1">
+                            <CrossFader
+                                value={faders.crossfader}
+                                onChange={(v) => setFaders((f) => ({ ...f, crossfader: v }))}
+                            />
+                        </div>
+                    </div>
+
+                    {/* DECK B */}
+                    <div className="flex-1 flex flex-col bg-slate-900/30 rounded-xl p-1.5 border border-slate-700/30 min-w-0">
+                        <div className="flex justify-between px-1 mb-1.5 shrink-0 gap-1.5">
+                            {["In", "Out", "Loop", "Sync"].map((l) => (
+                                <TopButton
+                                    key={l}
+                                    label={l}
+                                    active={topBtnsRight[l.toLowerCase()]}
+                                    onClick={() => toggleTopBtn("right", l.toLowerCase())}
+                                />
+                            ))}
+                        </div>
+                        <div className="bg-slate-100 text-orange-600 px-2 py-1 text-center text-3xl md:text-4xl font-black uppercase transform rotate-1 shadow-md mx-3 mb-2 shrink-0 leading-tight">
+                            Wie
+                            <br />
+                            lernen?
+                        </div>
+                        <div className="flex-grow flex items-center justify-center min-h-0">
+                            <JogWheel isPlaying={isPlayingRight} color="blue" />
+                        </div>
+                        <div className="grid grid-cols-4 gap-1.5 h-[24%] shrink-0">
+                            <Pad label="CUE" active={padsRight.cue} onClick={() => togglePad("right", "cue")} />
+                            <Pad label="Üben" active={padsRight.pract} onClick={() => togglePad("right", "pract")} />
+                            <Pad label="Probl." active={padsRight.prob} onClick={() => togglePad("right", "prob")} />
+                            <div className="bg-transparent"></div>
+                            <div className="flex items-center justify-center">
+                                <button
+                                    onClick={() => setIsPlayingRight((p) => !p)}
+                                    className={`w-11 h-11 rounded-full border-2 flex items-center justify-center transition-all ${
+                                        isPlayingRight
+                                            ? "border-green-500 bg-green-500/20 text-green-400"
+                                            : "border-slate-500 text-slate-300 bg-slate-800"
+                                    }`}
+                                >
+                                    {isPlayingRight ? <IconPause /> : <IconPlay />}
+                                </button>
+                            </div>
+                            <Pad label="Fehler" active={padsRight.fail} onClick={() => togglePad("right", "fail")} />
+                            <Pad label="Forsch" active={padsRight.res} onClick={() => togglePad("right", "res")} />
+                            <Pad label="Teilen" active={padsRight.share} onClick={() => togglePad("right", "share")} />
+                        </div>
+                    </div>
+
+                    {/* COLLAB STRIP (RIGHT) */}
+                    <div className="w-[19%] flex flex-col bg-[#1e293b] border-l-4 border-[#0f172a] p-1.5 items-center min-w-0 rounded-xl">
+                        <div className="bg-[#fff7ed] text-orange-600 px-2 py-1 text-[11px] md:text-xs font-bold uppercase tracking-widest rounded mb-3 w-full text-center shrink-0">
+                            Kollaboration
+                        </div>
+                        <div className="mb-3 shrink-0">
+                            <TouchKnob
+                                label="Kollab Master"
+                                value={knobs.collabMaster}
+                                onChange={(v) => updateKnob("collabMaster", v)}
+                            />
+                        </div>
+                        <div className="flex-grow flex flex-col justify-between w-full gap-1.5 min-h-0 px-0.5">
+                            {Object.entries({
+                                teamRef: "Team Refl.",
+                                peerFeed: "Peer Feedback",
+                                peerCoach: "Peer Coaching",
+                                peerRev: "Peer Review",
+                                peerAss: "Peer Assess.",
+                            }).map(([key, label]) => (
+                                <div key={key} className="flex items-center w-full gap-1.5">
+                                    <div className="text-[9px] md:text-[10px] uppercase text-slate-300 font-bold text-right leading-tight w-20">
+                                        {label}
+                                    </div>
+                                    <div className="flex-1">
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="100"
+                                            value={collabStrip[key]}
+                                            onChange={(e) =>
+                                                setCollabStrip((prev) => ({
+                                                    ...prev,
+                                                    [key]: parseInt(e.target.value, 10) || 0,
+                                                }))
+                                            }
+                                            className="w-full h-2 accent-sky-500 bg-slate-800 rounded-full"
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                <DocsModal isOpen={showDocs} onClose={() => setShowDocs(false)} />
+            </div>
+        );
+    }
+
+    // Mount React once DOM & Babel are ready
+    const container = document.getElementById("root");
+    if (container) {
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    } else {
+        console.error("Root container #root not found");
+    }
+</script>
+</body>
+</html>
