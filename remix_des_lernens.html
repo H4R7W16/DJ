@@ -2,7 +2,11 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Remix des Lernens">
+    <meta name="theme-color" content="#0f172a">
     <title>Remix des Lernens - Touch Optimized</title>
     <!-- React & Tailwind -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -156,9 +160,9 @@
         }
 
         const SIZE_CONFIG = {
-            small:  { svgSize: 40, radius: 16, strokeWidth: 3, knobSizeClass: "w-8 h-8",  labelClass: "text-[9px] md:text-[10px]" },
-            normal: { svgSize: 46, radius: 20, strokeWidth: 3, knobSizeClass: "w-10 h-10", labelClass: "text-[10px] md:text-[11px]" },
-            large:  { svgSize: 54, radius: 24, strokeWidth: 4, knobSizeClass: "w-12 h-12", labelClass: "text-[11px] md:text-[12px]" },
+            small:  { svgSize: 46, radius: 20, strokeWidth: 3, knobSizeClass: "w-11 h-11", labelClass: "text-[9px] md:text-[10px]" },
+            normal: { svgSize: 52, radius: 24, strokeWidth: 3, knobSizeClass: "w-12 h-12", labelClass: "text-[10px] md:text-[11px]" },
+            large:  { svgSize: 60, radius: 28, strokeWidth: 4, knobSizeClass: "w-14 h-14", labelClass: "text-[11px] md:text-[12px]" },
         };
 
         const cfg = SIZE_CONFIG[safeSize];
@@ -276,7 +280,7 @@
                 )}
                 <div
                     ref={trackRef}
-                    className="relative flex-grow w-7 md:w-9 bg-slate-900 rounded border border-slate-700 shadow-inner overflow-hidden cursor-pointer"
+                    className="relative flex-grow w-7 md:w-9 bg-slate-900 rounded border border-slate-700 shadow-inner overflow-hidden cursor-pointer px-2"
                     onPointerDown={handlePointerDown}
                     onPointerMove={handlePointerMove}
                 >
@@ -374,7 +378,7 @@
         return (
             <div
                 onClick={onClick}
-                className={`flex flex-col items-center justify-center w-9 h-9 rounded-full border cursor-pointer active:scale-95 transition-all shadow-md ${activeClass} select-none`}
+                className={`flex flex-col items-center justify-center w-11 h-11 rounded-full border cursor-pointer active:scale-95 transition-all shadow-md ${activeClass} select-none`}
             >
                 <span className="text-[10px] font-bold leading-tight text-center">{label}</span>
             </div>
@@ -466,7 +470,13 @@
         };
 
         return (
-            <div className="fixed inset-0 w-full h-full bg-[#0f172a] p-2 md:p-4 flex flex-col no-select">
+            <div className="fixed inset-0 w-full h-full bg-[#0f172a] p-2 md:p-4 flex flex-col no-select"
+                 style={{
+                     paddingLeft: 'max(0.5rem, env(safe-area-inset-left))',
+                     paddingRight: 'max(0.5rem, env(safe-area-inset-right))',
+                     paddingTop: 'max(0.5rem, env(safe-area-inset-top))',
+                     paddingBottom: 'max(1rem, env(safe-area-inset-bottom))'
+                 }}>
                 {/* Header */}
                 <div className="flex justify-between items-center px-4 h-10 shrink-0 mb-2">
                     <h1 className="text-xl md:text-3xl font-black uppercase tracking-tighter text-slate-100 flex items-center gap-2">
@@ -502,7 +512,7 @@
                         <div className="flex-grow flex items-center justify-center min-h-0">
                             <JogWheel isPlaying={isPlayingLeft} color="orange" />
                         </div>
-                        <div className="grid grid-cols-4 gap-1.5 h-[24%] shrink-0">
+                        <div className="grid grid-cols-4 gap-2 md:gap-3 h-[24%] shrink-0">
                             <Pad label="CUE" active={padsLeft.cue} onClick={() => togglePad("left", "cue")} />
                             <Pad label="BNE" active={padsLeft.bne} onClick={() => togglePad("left", "bne")} />
                             <Pad label="Curric." active={padsLeft.curr} onClick={() => togglePad("left", "curr")} />
@@ -626,7 +636,7 @@
                         <div className="flex-grow flex items-center justify-center min-h-0">
                             <JogWheel isPlaying={isPlayingRight} color="blue" />
                         </div>
-                        <div className="grid grid-cols-4 gap-1.5 h-[24%] shrink-0">
+                        <div className="grid grid-cols-4 gap-2 md:gap-3 h-[24%] shrink-0">
                             <Pad label="CUE" active={padsRight.cue} onClick={() => togglePad("right", "cue")} />
                             <Pad label="Üben" active={padsRight.pract} onClick={() => togglePad("right", "pract")} />
                             <Pad label="Probl." active={padsRight.prob} onClick={() => togglePad("right", "prob")} />
