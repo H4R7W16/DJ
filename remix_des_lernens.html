@@ -171,9 +171,9 @@
         }
 
         const SIZE_CONFIG = {
-            small:  { svgSize: 46, radius: 20, strokeWidth: 3, knobSizeClass: "w-11 h-11", labelClass: "text-[9px] md:text-[10px]" },
-            normal: { svgSize: 52, radius: 24, strokeWidth: 3, knobSizeClass: "w-12 h-12", labelClass: "text-[10px] md:text-[11px]" },
-            large:  { svgSize: 60, radius: 28, strokeWidth: 4, knobSizeClass: "w-14 h-14", labelClass: "text-[11px] md:text-[12px]" },
+            small:  { svgSize: 46, radius: 19, strokeWidth: 3, knobSizeClass: "w-10 h-10", labelClass: "text-[9px] md:text-[10px]" },
+            normal: { svgSize: 62, radius: 27, strokeWidth: 4, knobSizeClass: "w-12 h-12", labelClass: "text-[10px] md:text-[11px]" },
+            large:  { svgSize: 70, radius: 30, strokeWidth: 5, knobSizeClass: "w-14 h-14", labelClass: "text-[11px] md:text-[12px]" },
         };
 
         const cfg = SIZE_CONFIG[safeSize];
@@ -222,14 +222,16 @@
                 >
                     <svg width={svgSize} height={svgSize} className="pointer-events-none">
                         <g transform={`translate(${center},${center}) rotate(-150)`}>
+                            {/* Hintergrund-Arc (grau) */}
                             <circle
                                 r={radius}
                                 fill="none"
-                                stroke="#1e293b"
+                                stroke="#334155"
                                 strokeWidth={strokeWidth}
                                 strokeLinecap="round"
                                 strokeDasharray={`${arcLength} ${circumference}`}
                             />
+                            {/* Aktiver Arc (orange) */}
                             <circle
                                 r={radius}
                                 fill="none"
@@ -237,20 +239,23 @@
                                 strokeWidth={strokeWidth}
                                 strokeLinecap="round"
                                 strokeDasharray={`${currentArcLength} ${circumference}`}
-                                className="drop-shadow-[0_0_2px_rgba(249,115,22,0.8)]"
+                                className="drop-shadow-[0_0_3px_rgba(249,115,22,1)]"
                             />
                         </g>
                     </svg>
                     <div
-                        className={`${knobSizeClass} absolute rounded-full border-2 ${
-                            isDragging ? "border-orange-500" : "border-slate-600"
-                        } bg-slate-800 shadow-xl flex items-center justify-center`}
+                        className={`${knobSizeClass} absolute rounded-full border-2 border-slate-600 ${
+                            isDragging ? "bg-orange-900/40" : "bg-slate-800"
+                        } shadow-xl flex items-center justify-center transition-colors duration-100`}
                     >
                         <div
-                            className={`w-0.5 h-1/2 ${
-                                isDragging ? "bg-orange-500" : "bg-white"
-                            } absolute top-1 rounded-full origin-bottom transition-transform duration-75`}
-                            style={{ transform: `rotate(${rotation}deg) translateY(50%)` }}
+                            className={`w-1 h-1/2 ${
+                                isDragging ? "bg-orange-400 shadow-[0_0_4px_rgba(249,115,22,0.8)]" : "bg-white shadow-sm"
+                            } absolute top-1 rounded-full transition-all duration-75`}
+                            style={{
+                                transform: `rotate(${rotation}deg)`,
+                                transformOrigin: 'center bottom'
+                            }}
                         />
                     </div>
                 </div>
@@ -607,8 +612,8 @@
                             <TouchKnob label="Plenum" value={knobs.plenum} onChange={(v) => updateKnob("plenum", v)} />
                         </div>
 
-                        <div className="flex-grow flex justify-between items-center px-1 min-h-0">
-                            <div className="flex flex-col justify-around h-full py-1 gap-1.5">
+                        <div className="flex-grow flex justify-between items-stretch px-0.5 min-h-0 gap-1 pb-0">
+                            <div className="flex flex-col justify-start h-full py-0.5 gap-1 shrink-0">
                                 <TouchKnob
                                     label="Planung"
                                     value={knobs.planung}
@@ -624,7 +629,7 @@
                                 />
                             </div>
 
-                            <div className="flex gap-3 h-full py-2 px-2 bg-slate-900/40 rounded border border-slate-800/50 mx-1.5">
+                            <div className="flex gap-3 h-full py-2 px-2 bg-slate-900/40 rounded border border-slate-800/50 flex-shrink min-w-0">
                                 <TouchFader
                                     label="Was"
                                     value={faders.was}
@@ -639,7 +644,7 @@
                                 />
                             </div>
 
-                            <div className="flex flex-col justify-around h-full py-1 gap-1.5">
+                            <div className="flex flex-col justify-start h-full py-0.5 gap-1 shrink-0">
                                 <TouchKnob
                                     label="Feed Fwd"
                                     value={knobs.feedForward}
@@ -661,7 +666,7 @@
                             </div>
                         </div>
 
-                        <div className="mt-2 shrink-0 pb-1">
+                        <div className="mt-3 shrink-0 pb-1">
                             <CrossFader
                                 value={faders.crossfader}
                                 onChange={(v) => setFaders((f) => ({ ...f, crossfader: v }))}
@@ -724,7 +729,7 @@
                                 onChange={(v) => updateKnob("collabMaster", v)}
                             />
                         </div>
-                        <div className="flex-grow flex flex-col justify-between w-full gap-1.5 min-h-0 px-0.5">
+                        <div className="flex-grow flex flex-col justify-between w-full gap-2 min-h-0 px-0.5">
                             {Object.entries({
                                 teamRef: "Team Refl.",
                                 peerFeed: "Peer Feedback",
@@ -732,11 +737,11 @@
                                 peerRev: "Peer Review",
                                 peerAss: "Peer Assess.",
                             }).map(([key, label]) => (
-                                <div key={key} className="flex items-center w-full gap-1.5">
-                                    <div className="text-[9px] md:text-[10px] uppercase text-slate-300 font-bold text-right leading-tight w-20">
+                                <div key={key} className="flex flex-col w-full gap-0.5">
+                                    <div className="text-[9px] md:text-[10px] uppercase text-slate-300 font-bold leading-tight">
                                         {label}
                                     </div>
-                                    <div className="flex-1">
+                                    <div className="w-full">
                                         <input
                                             type="range"
                                             min="0"
